@@ -46,15 +46,15 @@
       <v-spacer />
       <v-btn
         icon
-        @click="login"
         v-if="!loggedIn"
+        @click="login"
       >
         Login
       </v-btn>
       <v-btn
         icon
+        v-else
         @click="logout"
-        v-if="loggedIn"
       >
         Out
       </v-btn>
@@ -74,14 +74,22 @@
 </template>
 
 <script>
+import firebase from 'firebase/app'
+import 'firebase/auth'
+
 export default {
   data () {
     return {
-      loggedIn: this.$store.state.logged,
+      loggedIn: false,
       clipped: false,
       drawer: false,
       fixed: false,
       items: [
+        {
+          icon: 'mdi-chart-bubble',
+          title: 'Profile',
+          to: '/profile'
+        },
         {
           icon: 'mdi-chart-bubble',
           title: 'Home',
@@ -99,12 +107,27 @@ export default {
       title: 'Vue Game Manager'
     }
   },
+  mounted () {
+    this.setupFirebase()
+  },
   methods: {
     logout () {
-      this.$router.push('/login')
+      firebase.auth().signOut().then(() => {
+        this.$router.push('/login')
+      })
     },
     login () {
       this.$router.push('/login')
+    },
+    setupFirebase () {
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          console.log('в сети')
+          this.loggedIn = true
+        } else {
+          this.loggedIn = false
+        }
+      })
     }
   }
 }
