@@ -56,12 +56,20 @@
         v-else
         @click="logout"
       >
-        Out
+        out
       </v-btn>
     </v-app-bar>
-    <v-main>
-      <v-container>
-        <nuxt />
+    <v-main >
+      <div class="preloader" v-if="loading">
+        <v-progress-circular
+          :size="70"
+          :width="7"
+          color="primary"
+          indeterminate
+        ></v-progress-circular>
+      </div>
+      <v-container v-else>
+        <nuxt/>
       </v-container>
     </v-main>
     <v-footer
@@ -81,9 +89,11 @@ export default {
   data () {
     return {
       loggedIn: false,
+      loading: false,
       clipped: false,
       drawer: false,
       fixed: false,
+      info: [],
       items: [
         {
           icon: 'mdi-chart-bubble',
@@ -94,17 +104,16 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Home',
           to: '/home'
-        },
-        {
-          icon: 'mdi-chart-bubble',
-          title: 'Regestration',
-          to: '/registration'
         }
       ],
       miniVariant: false,
       right: true,
-      rightDrawer: false,
-      title: 'Vue Game Manager'
+      rightDrawer: false
+    }
+  },
+  computed: {
+    title () {
+      return this.$store.state.info.info.name
     }
   },
   mounted () {
@@ -122,7 +131,9 @@ export default {
     setupFirebase () {
       firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-          console.log('в сети')
+          const uid = user.uid
+          this.$store.dispatch('info/fetchInfo', uid)
+          this.loading = false
           this.loggedIn = true
         } else {
           this.loggedIn = false
@@ -132,3 +143,13 @@ export default {
   }
 }
 </script>
+
+<style>
+.preloader {
+  margin: auto;
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+}
+</style>
