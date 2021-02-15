@@ -7,15 +7,23 @@
         height="25"
       >
         <template v-slot:default="{ value }">
-          <strong>{{  Math.ceil(value) }}%</strong>
+          <strong>{{ Math.ceil(value) }}%</strong>
         </template>
       </v-progress-linear>
-      <div class="game__lvl"></div>
+      <div class="game__lvl">
+        1LVL
+      </div>
     </div>
     <div class="game__content">
-      <div class="game-block large" @click="onChange"></div>
-      <div class="game-block small" @click="onChange"></div>
-      <div class="game-block medium" @click="onChange"></div>
+      <div
+        v-for="(item, index) in items"
+        :key="item.index"
+        ref="block"
+        class="game-block"
+        :class="[item.type ,{active: activeIndex === index }]"
+        :active="activeIndex === index"
+        @click="onChange(index)"
+      />
     </div>
     <div class="game__ui-bottom">
       <v-btn
@@ -24,6 +32,13 @@
         @click="onStart"
       >
         НАЧАТЬ
+      </v-btn>
+      <v-btn
+        color="success"
+        class="mr-4 game__btn"
+        @click="onFinish"
+      >
+        ДАЛЕЕ
       </v-btn>
     </div>
   </div>
@@ -49,6 +64,10 @@
   margin: 10px;
   transition: 0.3s;
   cursor: pointer;
+  box-sizing: border-box
+}
+.game-block.active {
+  border: 5px solid blue;
 }
 .game-block:hover {
   transform: scale(1.1);
@@ -75,7 +94,14 @@
 export default {
   data: () => ({
     timer: null,
-    currentTime: 0
+    currentTime: 0,
+    DataTime: 0,
+    activeIndex: -1,
+    items: [
+      { type: 'medium' },
+      { type: 'large' },
+      { type: 'small' }
+    ]
   }),
   methods: {
     onStart () {
@@ -83,11 +109,31 @@ export default {
         this.currentTime++
       }, 1000)
     },
+    onFinish () {
+      const dataGame = {
+        time: this.currentTime,
+        complite: false
+      }
+      this.$refs.block.map(function (item) {
+        if (item.classList.contains('active') && item.classList.contains('small')) {
+          dataGame.complite = true
+          return true
+        } else {
+          return false
+        }
+      })
+      console.log(dataGame)
+      this.stopTimer()
+    },
     stopTimer () {
       clearTimeout(this.timer)
     },
-    onChange () {
-      console.log(this)
+    onChange (index) {
+      if (this.activeIndex === index) {
+        this.activeIndex = -1
+      } else {
+        this.activeIndex = index
+      }
     }
   },
   destroyed () {

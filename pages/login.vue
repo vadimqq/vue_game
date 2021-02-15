@@ -7,7 +7,9 @@
       </div>
       <v-card>
         <div class="form-wrapper">
-          <v-card-title class="headline">Demo VUE game</v-card-title>
+          <v-card-title class="headline">
+            Demo VUE game
+          </v-card-title>
           <v-form
             ref="form"
             v-model="valid"
@@ -18,7 +20,7 @@
               :rules="emailRules"
               label="E-mail"
               required
-            ></v-text-field>
+            />
 
             <v-text-field
               v-model="password"
@@ -26,7 +28,7 @@
               label="Password"
               type="password"
               required
-            ></v-text-field>
+            />
 
             <v-btn
               :disabled="!valid"

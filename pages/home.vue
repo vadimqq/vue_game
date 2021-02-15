@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-col class="text-center">
-      <game/>
+      <game />
     </v-col>
   </v-row>
 </template>

@@ -45,31 +45,31 @@
       <v-toolbar-title v-text="title" />
       <v-spacer />
       <v-btn
-        icon
         v-if="!loggedIn"
+        icon
         @click="login"
       >
         Login
       </v-btn>
       <v-btn
-        icon
         v-else
+        icon
         @click="logout"
       >
         out
       </v-btn>
     </v-app-bar>
-    <v-main >
-      <div class="preloader" v-if="loading">
+    <v-main>
+      <div v-if="loading" class="preloader">
         <v-progress-circular
           :size="70"
           :width="7"
           color="primary"
           indeterminate
-        ></v-progress-circular>
+        />
       </div>
       <v-container v-else>
-        <nuxt/>
+        <nuxt />
       </v-container>
     </v-main>
     <v-footer
