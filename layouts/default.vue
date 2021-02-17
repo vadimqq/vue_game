@@ -42,7 +42,7 @@
       >
         <v-icon>mdi-application</v-icon>
       </v-btn>
-      <v-toolbar-title v-text="title" />
+      <v-toolbar-title v-text="this.getInfo.name" />
       <v-spacer />
       <v-btn
         v-if="!loggedIn"
@@ -84,6 +84,7 @@
 <script>
 import firebase from 'firebase/app'
 import 'firebase/auth'
+import { mapGetters } from 'vuex'
 
 export default {
   data () {
@@ -93,7 +94,6 @@ export default {
       clipped: false,
       drawer: false,
       fixed: false,
-      info: [],
       items: [
         {
           icon: 'mdi-chart-bubble',
@@ -102,8 +102,8 @@ export default {
         },
         {
           icon: 'mdi-chart-bubble',
-          title: 'Home',
-          to: '/home'
+          title: 'Games',
+          to: '/games'
         }
       ],
       miniVariant: false,
@@ -112,18 +112,16 @@ export default {
     }
   },
   computed: {
-    title () {
-      return this.$store.state.info.info.name
-    }
+    ...mapGetters('info', ['getInfo'])
   },
   mounted () {
     this.setupFirebase()
   },
   methods: {
     logout () {
-      firebase.auth().signOut().then(() => {
-        this.$router.push('/login')
-      })
+      this.$store.dispatch('auth/logout')
+      this.$store.commit('info/clearInfo')
+      this.$router.push('/login')
     },
     login () {
       this.$router.push('/login')

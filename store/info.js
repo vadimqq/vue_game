@@ -19,9 +19,12 @@ export const actions = {
 export const mutations = {
   setInfo (state, info) {
     state.info = info
+  },
+  clearInfo (state) {
+    state.info = {}
   }
 }
 
 export const getters = {
-  info: s => s.info
+  getInfo: state => state.info
 }

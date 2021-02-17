@@ -82,7 +82,7 @@ export default {
       }
       try {
         await this.$store.dispatch('auth/login', formData)
-        this.$router.push('/home')
+        this.$router.push('/games')
       } catch (e) {}
     },
     regLink () {

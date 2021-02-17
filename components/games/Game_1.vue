@@ -198,12 +198,14 @@ export default {
       const date = new Date()
       try {
         await this.$store.dispatch('game/createDataGame', {
+          name: 'Больше/меньше',
           time: (this.totalTime / 100) * this.currentTime,
           rounds: this.data.length,
           fail: this.failCounter,
           date: {
             mounth: date.getMonth() + 1,
-            day: date.getDate()
+            day: date.getDate(),
+            year: date.getFullYear()
           }
         })
       } catch (e) {
