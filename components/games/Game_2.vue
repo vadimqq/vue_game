@@ -1,6 +1,6 @@
 <template>
   <div class="game">
-    <div class="game__row" v-for="(row, index) in viewport" :key="index">
+    <div class="game__row" v-for="(row, index) in viewport" :key="index" v-bind:render="render">
       <div
         class="game__block"
         v-for="(block, id) in viewport[index]"
@@ -20,6 +20,7 @@ export default {
     activeIndex: null,
     viewport: [],
     quality: 10,
+    render: 1,
     types: [
       'red',
       'green',
@@ -30,12 +31,15 @@ export default {
     elemId: null
   }),
   mounted () {
-    this.render()
+    this.startGame()
     this.createTypes()
     this.randomize()
   },
   methods: {
-    render () {
+    renderComponent () {
+      this.render++
+    },
+    startGame () {
       for (let row = 0; row < this.quality; row++) {
         this.viewport.push([])
         this.viewport[row] = []
@@ -60,24 +64,28 @@ export default {
         return row
       })
     },
-    transform (elemId, currentElemId) {
-      console.log(this.elemId)
+    transform (elemID) {
+      const transformElemId = {
+        row: parseInt(elemID.split('/')[0]),
+        col: parseInt(elemID.split('/')[1])
+      }
+      const activeElemId = {
+        row: parseInt(this.activeIndex.split('/')[0]),
+        col: parseInt(this.activeIndex.split('/')[1])
+      }
+      const activeElem = this.viewport[activeElemId.row][activeElemId.col]
+      const transformElem = this.viewport[transformElemId.row][transformElemId.col]
+      this.viewport[transformElemId.row][transformElemId.col] = activeElem
+      this.viewport[activeElemId.row][activeElemId.col] = transformElem
+      this.renderComponent()
+      this.destroyArray()
     },
     onChange (row, id, elem) {
       const currentElemId = row + '/' + id
       if (this.activeIndex !== currentElemId && !elem.classList.contains('transform')) {
         this.activeIndex = currentElemId
       } else if (elem.classList.contains('transform')) {
-        if (elem.classList.contains('up')) {
-          this.elemId = (row + 1) + '/' + (id)
-        } else if (elem.classList.contains('down')) {
-          this.elemId = (row - 1) + '/' + (id)
-        } else if (elem.classList.contains('right')) {
-          this.elemId = (row) + '/' + (id - 1)
-        } else if (elem.classList.contains('left')) {
-          this.elemId = (row) + '/' + (id + 1)
-        }
-        this.transform(1, currentElemId)
+        this.transform(row + '/' + id)
       }
     },
     getTransformIndex (index, id) {
@@ -92,6 +100,27 @@ export default {
       } else {
         return false
       }
+    },
+    destroyArray () {
+      this.viewport.map((row) => {
+        const result = row.map((block) => {
+          return block.type
+        })
+        console.log('ORIGINAL', result)
+        console.log('FILTER', this.uniq(result))
+        return row
+      })
+    },
+    uniq (a) {
+      const arr = a.filter(function (item, pos, ary) {
+        if (item === ary[pos + 1] && item === ary[pos - 1]) {
+          console.log('kek')
+          return false
+        } else {
+          return item
+        }
+      })
+      return arr
     }
   }
 }
@@ -105,7 +134,7 @@ export default {
   background-color: white;
   padding: 40px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
 }
 .game__row {
   display: flex;
