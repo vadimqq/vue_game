@@ -77,6 +77,7 @@ export default {
       const transformElem = this.viewport[transformElemId.row][transformElemId.col]
       this.viewport[transformElemId.row][transformElemId.col] = activeElem
       this.viewport[activeElemId.row][activeElemId.col] = transformElem
+      this.activeIndex = null
       this.renderComponent()
       this.destroyArray()
     },
@@ -102,25 +103,39 @@ export default {
       }
     },
     destroyArray () {
-      this.viewport.map((row) => {
-        const result = row.map((block) => {
-          return block.type
+      this.viewport = this.viewport.map((row, index) => {
+        row.map((block, id) => {
+          if (id + 2 >= this.viewport[index].length) {
+            return block
+          } else if (block.type === this.viewport[index][id + 1].type && block.type === this.viewport[index][id + 2].type) {
+            block.type = ''
+            this.viewport[index][id + 1].type = ''
+            this.viewport[index][id + 2].type = ''
+            return block
+          } else {
+            return block
+          }
         })
-        console.log('ORIGINAL', result)
-        console.log('FILTER', this.uniq(result))
         return row
       })
+      this.renderComponent()
+      this.updateViewport()
     },
-    uniq (a) {
-      const arr = a.filter(function (item, pos, ary) {
-        if (item === ary[pos + 1] && item === ary[pos - 1]) {
-          console.log('kek')
-          return false
-        } else {
-          return item
+    updateViewport () {
+      /* for (let row = 0; row < this.viewport.length; row++) {
+        for (let block = 0; block < this.viewport[row].length; block++) {
+          if (this.viewport[row][block].type === '') {
+            const type = this.viewport[row + 1][block].type
+            this.viewport[row][block].type = type
+            if (this.viewport.length === row) {
+              console.log('kek')
+            } else {
+              console.log(this.viewport.length, row)
+              this.viewport[row + 1][block].type = 'black'
+            }
+          }
         }
-      })
-      return arr
+      } */
     }
   }
 }
