@@ -202,11 +202,13 @@ export default {
           time: (this.totalTime / 100) * this.currentTime,
           rounds: this.data.length,
           fail: this.failCounter,
+          scores: null,
           date: {
             mounth: date.getMonth() + 1,
             day: date.getDate(),
             year: date.getFullYear()
-          }
+          },
+          gameDir: 'more_less'
         })
       } catch (e) {
         console.log(e)

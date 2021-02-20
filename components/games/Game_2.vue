@@ -1,19 +1,57 @@
 <template>
   <div class="game">
     <div class="game__top-menu">
-      <span class="game__hp">SWAP POINT:{{ playerLife }}</span>
-      <span class="game__points">POINTS:{{ points }}</span>
+      <span class="game__hp">свапы: {{ playerLife }}</span>
+      <v-btn
+        depressed
+        color="error"
+        @click="toggleMenu"
+        :disabled="stateEndGame"
+      >
+        меню
+      </v-btn>
+      <span class="game__points">очки: {{ points }}</span>
     </div>
-    <div class="game__row" v-for="(row, index) in viewport" :key="index" v-bind:renderCounter="renderCounter">
-      <div
-        class="game__block"
-        v-for="(block, id) in viewport[index]"
-        :key="id"
-        ref="block"
-        :style="{ 'background-color': block.type }"
-        @click="onChange(index, id, $event.target)"
-        :class="[{ active: activeIndex === index + '/' + id }, getTransformIndex(index, id)]"
-      />
+    <div class="game__menu" v-show="stateMenu">
+      <v-btn
+        class="game__menu-btn"
+        depressed
+        color="primary"
+        @click="restartGame"
+      >
+        Начать заново
+      </v-btn>
+      <v-btn
+        class="game__menu-btn"
+        depressed
+        color="primary"
+        @click="toggleMenu"
+        v-show="!stateEndGame"
+      >
+        Продолжить
+      </v-btn>
+      <v-btn
+        class="game__menu-btn"
+        depressed
+        color="primary"
+        disabled
+        v-show="!stateEndGame"
+      >
+        Выйти
+      </v-btn>
+    </div>
+    <div class="game__viewport" v-show="!stateMenu">
+      <div class="game__row" v-for="(row, index) in viewport" :key="index" v-bind:renderCounter="renderCounter">
+        <div
+          class="game__block"
+          v-for="(block, id) in viewport[index]"
+          :key="id"
+          ref="block"
+          :style="{ 'background-color': block.type }"
+          @click="onChange(index, id, $event.target)"
+          :class="[{ active: activeIndex === index + '/' + id }, getTransformIndex(index, id)]"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -21,12 +59,16 @@
 <script>
 export default {
   data: () => ({
+    fps: 200,
+    stateMenu: false,
+    stateEndGame: false,
     activeIndex: null,
     viewport: [],
     quality: 10,
     renderCounter: 1,
     playerLife: 10,
     points: 0,
+    hitCounter: 0,
     types: [
       'red',
       'green',
@@ -38,9 +80,6 @@ export default {
   }),
   mounted () {
     this.startGame()
-    this.createTypes()
-    this.randomize()
-    this.render()
   },
   methods: {
     render () {
@@ -49,9 +88,23 @@ export default {
         this.destroyArray()
         this.updateViewport()
         this.addNewRow()
-      }, 300)
+      }, this.fps)
     },
     startGame () {
+      this.createViewport()
+      this.createTypes()
+      this.randomize()
+      this.render()
+    },
+    restartGame () {
+      this.stateEndGame = false
+      this.viewport = []
+      this.points = 0
+      this.playerLife = 10
+      this.startGame()
+      this.stateMenu = false
+    },
+    createViewport () {
       for (let row = 0; row < this.quality; row++) {
         this.viewport.push([])
         this.viewport[row] = []
@@ -91,6 +144,11 @@ export default {
       this.viewport[activeElemId.row][activeElemId.col] = transformElem
       this.activeIndex = null
       this.playerLife -= 1
+      if (this.playerLife === 0) {
+        this.setData()
+        this.stateEndGame = true
+        this.stateMenu = true
+      }
     },
     onChange (row, id, elem) {
       const currentElemId = row + '/' + id
@@ -119,11 +177,19 @@ export default {
           if (id + 2 >= this.viewport[index].length) {
             return block
           } else if (block.type === this.viewport[index][id + 1].type && block.type === this.viewport[index][id + 2].type && block.type !== '') {
-            block.type = ''
-            this.viewport[index][id + 1].type = ''
-            this.viewport[index][id + 2].type = ''
+            for (let i = 0; i < this.quality - id; i++) {
+              if (block.type === this.viewport[index][id + i].type) {
+                this.hitCounter += 1
+              } else {
+                break
+              }
+            }
+            for (let i = 0; i < this.hitCounter; i++) {
+              this.viewport[index][id + i].type = ''
+            }
+            this.pointCounter()
             this.playerLife += 1
-            this.points += 100
+            this.hitCounter = 0
             return block
           } else {
             return block
@@ -160,20 +226,50 @@ export default {
           return block
         })
       }
+    },
+    pointCounter () {
+      this.points += 10 * this.hitCounter
+    },
+    toggleMenu () {
+      this.stateMenu = !this.stateMenu
+    },
+    async setData () {
+      const date = new Date()
+      try {
+        await this.$store.dispatch('game/createDataGame', {
+          name: 'Три в ряд',
+          time: null,
+          rounds: null,
+          fail: null,
+          scores: this.points,
+          date: {
+            mounth: date.getMonth() + 1,
+            day: date.getDate(),
+            year: date.getFullYear()
+          },
+          gameDir: 'three_in_a_row'
+        })
+      } catch (e) {
+        console.log(e)
+      }
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
 .game {
   margin: auto;
-  width: 700px;
-  height: 800px;
   background-color: white;
-  padding: 40px;
+  position: relative;
+  width: 700px;
+  height: 820px;
+}
+.game__viewport {
   display: flex;
   flex-direction: column-reverse;
+  align-items: center;
+  padding: 0 40px;
 }
 .game__row {
   display: flex;
@@ -184,6 +280,7 @@ export default {
   border-radius: 5px;
   margin: 5px;
   border: 1px solid grey;
+  box-sizing: border-box;
 }
 .game__block.active {
   border: 4px solid black;
@@ -192,8 +289,25 @@ export default {
   opacity: 0.5;
 }
 .game__top-menu {
-  color: black;
+  color: white;
+  text-transform: uppercase;
+  font-size: 20px;
   display: flex;
   justify-content: space-between;
+  padding: 40px;
+  margin-bottom: 40px;
+  background-color: coral;
+}
+.game__menu {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  padding: 80px;
+  margin:  0 auto;
+  background-color: cadetblue;
+  border-radius: 10px;
+}
+.game__menu-btn {
+  margin-bottom: 40px;
 }
 </style>

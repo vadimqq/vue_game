@@ -11,17 +11,17 @@
           <v-tabs-slider></v-tabs-slider>
 
           <v-tab href="#tab-1">
-            History
+            История
             <v-icon>mdi-menu</v-icon>
           </v-tab>
 
           <v-tab href="#tab-2">
-            Statistic
+            Статистика
             <v-icon>mdi-menu</v-icon>
           </v-tab>
 
           <v-tab href="#tab-3" disabled>
-            favorite game
+            Любимые игры
             <v-icon>mdi-menu</v-icon>
           </v-tab>
         </v-tabs>
@@ -70,7 +70,9 @@ export default {
     }
   },
   async mounted () {
-    await this.$store.dispatch('game/fetchDataGame')
+    this.$store.commit('game/clearData')
+    await this.$store.dispatch('game/fetchDataGame', 'more_less')
+    await this.$store.dispatch('game/fetchDataGame', 'three_in_a_row')
   }
 }
 </script>
