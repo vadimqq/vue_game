@@ -1,6 +1,10 @@
 <template>
   <div class="game">
-    <div class="game__row" v-for="(row, index) in viewport" :key="index" v-bind:render="render">
+    <div class="game__top-menu">
+      <span class="game__hp">SWAP POINT:{{ playerLife }}</span>
+      <span class="game__points">POINTS:{{ points }}</span>
+    </div>
+    <div class="game__row" v-for="(row, index) in viewport" :key="index" v-bind:renderCounter="renderCounter">
       <div
         class="game__block"
         v-for="(block, id) in viewport[index]"
@@ -20,7 +24,9 @@ export default {
     activeIndex: null,
     viewport: [],
     quality: 10,
-    render: 1,
+    renderCounter: 1,
+    playerLife: 10,
+    points: 0,
     types: [
       'red',
       'green',
@@ -34,10 +40,16 @@ export default {
     this.startGame()
     this.createTypes()
     this.randomize()
+    this.render()
   },
   methods: {
-    renderComponent () {
-      this.render++
+    render () {
+      setInterval(() => {
+        this.renderCounter++
+        this.destroyArray()
+        this.updateViewport()
+        this.addNewRow()
+      }, 300)
     },
     startGame () {
       for (let row = 0; row < this.quality; row++) {
@@ -78,8 +90,7 @@ export default {
       this.viewport[transformElemId.row][transformElemId.col] = activeElem
       this.viewport[activeElemId.row][activeElemId.col] = transformElem
       this.activeIndex = null
-      this.renderComponent()
-      this.destroyArray()
+      this.playerLife -= 1
     },
     onChange (row, id, elem) {
       const currentElemId = row + '/' + id
@@ -107,10 +118,12 @@ export default {
         row.map((block, id) => {
           if (id + 2 >= this.viewport[index].length) {
             return block
-          } else if (block.type === this.viewport[index][id + 1].type && block.type === this.viewport[index][id + 2].type) {
+          } else if (block.type === this.viewport[index][id + 1].type && block.type === this.viewport[index][id + 2].type && block.type !== '') {
             block.type = ''
             this.viewport[index][id + 1].type = ''
             this.viewport[index][id + 2].type = ''
+            this.playerLife += 1
+            this.points += 100
             return block
           } else {
             return block
@@ -118,24 +131,35 @@ export default {
         })
         return row
       })
-      this.renderComponent()
-      this.updateViewport()
     },
     updateViewport () {
-      /* for (let row = 0; row < this.viewport.length; row++) {
+      for (let row = 0; row < this.viewport.length; row++) {
         for (let block = 0; block < this.viewport[row].length; block++) {
           if (this.viewport[row][block].type === '') {
-            const type = this.viewport[row + 1][block].type
-            this.viewport[row][block].type = type
-            if (this.viewport.length === row) {
-              console.log('kek')
-            } else {
-              console.log(this.viewport.length, row)
-              this.viewport[row + 1][block].type = 'black'
+            if ((this.viewport.length - 1) !== row) {
+              const type = this.viewport[row + 1][block].type
+              this.viewport[row + 1][block].type = ''
+              this.viewport[row][block].type = type
             }
           }
         }
-      } */
+      }
+    },
+    addNewRow () {
+      const lastRow = this.viewport[this.viewport.length - 1].filter((item) => {
+        if (item.type === '') {
+          return false
+        } else {
+          return item
+        }
+      })
+      if (lastRow.length === 0) {
+        this.viewport[this.viewport.length - 1].map((block) => {
+          const type = this.types[Math.floor(Math.random() * this.types.length)]
+          block.type = type
+          return block
+        })
+      }
     }
   }
 }
@@ -155,8 +179,8 @@ export default {
   display: flex;
 }
 .game__block {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   border-radius: 5px;
   margin: 5px;
   border: 1px solid grey;
@@ -166,5 +190,10 @@ export default {
 }
 .game__block.transform {
   opacity: 0.5;
+}
+.game__top-menu {
+  color: black;
+  display: flex;
+  justify-content: space-between;
 }
 </style>
